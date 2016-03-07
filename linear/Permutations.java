@@ -2,19 +2,19 @@ import java.util.ArrayList;
 
 class Permutations<T> {
 
-   ArrayList<T> lst;  
+   ArrayList<T> list;  
 
    public Permutations(T[] a) { 
-      lst = new ArrayList<T>();
-      for (T x : a) lst.add(x);
+      list = new ArrayList<T>();
+      for (T x : a) list.add(x);
       permute("");
    }
    void permute(String perm) {
-      if (lst.isEmpty()) System.out.println(perm);
-      else for (int i=0; i<lst.size(); i++) {
-         T x = lst.remove(i); 
+      if (list.isEmpty()) System.out.println(perm);
+      else for (int i=0; i<list.size(); i++) {
+         T x = list.remove(i); 
          permute(perm+x);
-         lst.add(i, x); 
+         list.add(i, x); 
       }
    }
    

@@ -2,13 +2,13 @@ import java.util.ArrayList;
 
 class Determinant {
    
-   ArrayList<Byte> lst; 
+   ArrayList<Byte> list; 
    float[][] data;
    int count; float sum; 
 
    public Determinant(float[][] a) { 
-      lst = new ArrayList<Byte>();
-      for (byte i=0; i<a.length; i++) lst.add(i);
+      list = new ArrayList<Byte>();
+      for (byte i=0; i<a.length; i++) list.add(i);
       data = a; printData();
       count = 0; sum = 0; 
       permute("", 1);  //recursive call
@@ -24,16 +24,16 @@ class Determinant {
    }
    void permute(String perm, float term) {
       int k = perm.length(); 
-      if (lst.isEmpty()) { 
+      if (list.isEmpty()) { 
           System.out.printf("%s\t%s %n", perm, term); 
           count++; sum += term; 
-      } else for (int i=0; i<lst.size(); i++) {
-          Byte j = lst.get(i); 
+      } else for (int i=0; i<list.size(); i++) {
+          Byte j = list.get(i); 
           float t = data[k][j];
           if (t != 0) {
-              lst.remove(i); 
+              list.remove(i); 
               permute(perm+j, term*t);
-              lst.add(i, j); 
+              list.add(i, j); 
           }
           term = -term;
       }
