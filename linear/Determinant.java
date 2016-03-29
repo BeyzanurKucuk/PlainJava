@@ -41,7 +41,7 @@ class Determinant {
 
    final static float[][] 
       A = { { 1, 4, 1 }, { 2, 2, 1 }, { 3, 0, 3 } },
-      B = { { 1, 4, 0, 1 }, { 2, 2, 1, 1 }, { 3, 1, 2,-2 }, { 3, 0, 1, 2 } };
+      B = { { 2, 2, 1, 1 }, { 1, 4, 0, 1 }, { 3, 1, 2,-2 }, { 3, 0, 1, 2 } };
    public static void main(String[] args) {
       new Determinant(B);
    }
