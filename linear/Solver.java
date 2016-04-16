@@ -3,7 +3,7 @@ import javax.swing.*;
 import javax.swing.event.*;
 import javax.swing.border.EmptyBorder;
 
-public class Solver implements ListSelectionListener {
+public class Solver implements ListSelectionListener, Runnable {
 
     static final String MSG = "Linear Equation Solver -- V0 Apr 2016";
     static final int 
@@ -30,8 +30,8 @@ public class Solver implements ListSelectionListener {
         //tab.setFillsViewportHeight(true);
         tab.setSelectionMode(ListSelectionModel.SINGLE_SELECTION);
         JScrollPane scr = new JScrollPane(tab);
-        int w = tab.getRowCount() * W;
-        int h = (tab.getColumnCount() + 1) * H;
+        int w = mat.getColumnCount() * W;
+        int h = (mat.getRowCount() + 1) * H;
         scr.setPreferredSize(new Dimension(w, h));
         tab.getSelectionModel().addListSelectionListener(this);
         pan.add(scr, "Center");
@@ -44,9 +44,8 @@ public class Solver implements ListSelectionListener {
         pan.add(msg, "South");
         
         pan.setBorder(new EmptyBorder(GAP, GAP, GAP, GAP));
-        pan.setToolTipText("Swing components are wonderful");
-        lab.setToolTipText("Really");
-        tab.setToolTipText("A cute little table");
+        tab.setToolTipText("Cofficients");
+        msg.setToolTipText("The result");
 
         frm.setContentPane(pan); 
         frm.setDefaultCloseOperation(JFrame.DISPOSE_ON_CLOSE);
@@ -55,11 +54,27 @@ public class Solver implements ListSelectionListener {
     }
     public void valueChanged(ListSelectionEvent e) {
         if (e.getValueIsAdjusting()) return;
-        System.out.println("row "+tab.getSelectedRow());
+        //System.out.println("row "+tab.getSelectedRow());
+    }
+    public void run() {
+        int k = 0; boolean done = false;
+        while (!done) {
+            done = mat.forward(k);
+            tab.getSelectionModel().setSelectionInterval(k, k);
+            k++; msg.setText("Row "+k);
+            //System.out.println("Row "+k);
+            tab.repaint();
+            try { Thread.sleep(1500);
+            } catch (InterruptedException e) {
+            }
+        }
+        msg.setText("Determinant = "+mat.det);
+        if (mat.getRowCount() == mat.getColumnCount()) return;
+        mat.backward(); tab.repaint(); 
     }
     public void solve() {
-        mat.solve(); tab.repaint();
-        msg.setText("solved!");
+        System.out.println("Begin Solver");
+        new Thread(this).start(); 
     }
 
     public static float scaled(float k) { return k*RES_RATIO; }
@@ -69,7 +84,6 @@ public class Solver implements ListSelectionListener {
         return f.deriveFont(scaled(size));
     }
     public static void main(String[] args) {
-        System.out.println("Begin Solver");
-        new Solver(); 
+        new Solver().solve(); 
     }
 }
