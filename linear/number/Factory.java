@@ -60,8 +60,49 @@ public class Factory {
              return newDecimal(re);
         else return new Complex(re, im);
     }
-    /* Factory method that constructs a {@link mae.tut.num.Matrix}. 
-    public static Number newMatrix(float a, float b, float c, float d) {
-        return new Matrix(a, b, c, d);
-    }*/
+    
+    public static Number parseWhole(String s) {
+        try { 
+            return newWhole(Integer.parseInt(s));
+        } catch (Exception e) {
+            return null;
+        }
+    }
+    public static Number parseRational(String s) {
+        String[] a = s.split("/");
+        if (a.length != 2) return null;
+        try { 
+            int n = Integer.parseInt(a[0]);
+            int m = Integer.parseInt(a[1]);
+            return newRational(n, m);
+        } catch (Exception e) {
+            return null;
+        }
+    }
+    public static Number parseDecimal(String s) {
+        try { 
+            return newDecimal(Float.parseFloat(s));
+        } catch (Exception e) {
+            return null;
+        }
+    }
+    public static Number parseNumber(String s) {
+        Number n = parseWhole(s);
+        if (n != null) return n;
+        n = parseRational(s);
+        if (n != null) return n;
+        return parseDecimal(s);
+    }
+    public static Number[] parseRow(String s) {
+        String[] a = s.split("(\\s|,)+");
+        Number[] n = new Number[a.length];
+        for (int i=0; i<a.length; i++) n[i] = parseNumber(a[i]);
+        return n;
+    }
+    
+    public static void main(String[] args) {
+        String s = "10/34  -23 0000\t00.75, 1/2/3 \t1.2.3 -30/20";
+        Number[] n = parseRow(s);
+        for (Number t : n) System.out.println(t+" ");
+    }
 }
