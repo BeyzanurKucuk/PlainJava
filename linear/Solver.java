@@ -1,6 +1,7 @@
 import java.awt.*;
 import javax.swing.*;
 import javax.swing.event.*;
+import javax.swing.table.JTableHeader;
 import javax.swing.border.EmptyBorder;
 
 public class Solver implements ListSelectionListener, Runnable {
@@ -14,21 +15,26 @@ public class Solver implements ListSelectionListener, Runnable {
     static final Font NORMAL = scaledFont("Dialog", 0, 14);
     static final Font LARGE = scaledFont("Dialog", 0, 18);
     
-    final Matrix mat = new Matrix();
+    final Matrix mat;
     final JFrame frm = new JFrame("Solver");
     final JLabel lab = new JLabel(MSG);
     final JTable tab = new JTable(mat);
     final JLabel msg = new JLabel(mat.toString());
     
-    public Solver() {
+    public Solver(Matrix m) {
+        mat = m;
         JPanel pan = new JPanel(new BorderLayout(GAP, GAP));
         
         tab.setRowHeight(H);
         tab.setFont(LARGE);
-        Component head = tab.getTableHeader();
+        JTableHeader head = tab.getTableHeader();
         head.setFont(NORMAL);
+        head.setReorderingAllowed(false);
         //tab.setFillsViewportHeight(true);
         tab.setSelectionMode(ListSelectionModel.SINGLE_SELECTION);
+        JLabel cr = (JLabel)tab.getCellRenderer(0, 0);
+        cr.setHorizontalAlignment(JLabel.CENTER);
+
         JScrollPane scr = new JScrollPane(tab);
         int w = mat.getColumnCount() * W;
         int h = (mat.getRowCount() + 1) * H;
@@ -70,7 +76,7 @@ public class Solver implements ListSelectionListener, Runnable {
         }
         msg.setText("Determinant = "+mat.det);
         if (mat.getRowCount() == mat.getColumnCount()) return;
-        mat.backward(); tab.repaint(); 
+        //mat.backward(); tab.repaint(); 
     }
     public void solve() {
         System.out.println("Begin Solver");
@@ -84,6 +90,6 @@ public class Solver implements ListSelectionListener, Runnable {
         return f.deriveFont(scaled(size));
     }
     public static void main(String[] args) {
-        new Solver().solve(); 
+        new Solver(new Matrix()).solve(); 
     }
 }
