@@ -1,6 +1,5 @@
 import number.Number;
 import number.Whole;
-import number.Rational;
 import javax.swing.table.TableModel;
 import javax.swing.event.TableModelListener;
 
@@ -8,9 +7,14 @@ class Row {
    final int N;
    final Number[] data;
    public Row(int[] d) { 
-      N = d.length; data = new Number[N];  //Arrays.copyOf(d, N);
+      N = d.length; data = new Number[N]; 
       for (int j=0; j<N; j++) 
           data[j] = new Whole(d[j]);
+   }
+   public Row(Number[] d) { 
+      N = d.length; data = new Number[N]; 
+      for (int j=0; j<N; j++) 
+          data[j] = d[j];
    }
    public void multiply(Number c) {
       //System.out.printf("x %s \n", c);
@@ -27,7 +31,7 @@ class Row {
    public String toString() { 
       String s = "";
       for (int j=0; j<N; j++)  {
-         if (j > 0) s += "\t";
+         if (j > 0) s += " \t";
          s += data[j].toString();
          //if (s.endsWith(".0")) s = s.substring(0, s.length()-2);
       }
@@ -43,6 +47,11 @@ class Matrix implements TableModel {
    public Matrix(int[][] a) {
       M = a.length; row = new Row[M];
       for (byte i=0; i<M; i++) row[i] = new Row(a[i]);
+      System.out.println(this);
+   }
+   public Matrix(String[] a) {
+      M = a.length; row = new Row[M];
+      for (byte i=0; i<M; i++) row[i] = new Row(number.Factory.parseRow(a[i]));
       System.out.println(this);
    }
    public void printData() {

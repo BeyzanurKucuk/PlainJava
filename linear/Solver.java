@@ -1,12 +1,13 @@
 import java.awt.*;
+import java.awt.event.*;
 import javax.swing.*;
 import javax.swing.event.*;
 import javax.swing.table.JTableHeader;
 import javax.swing.border.EmptyBorder;
 
-public class Solver implements ListSelectionListener, Runnable {
+public class Solver implements Runnable {
 
-    static final String MSG = "Linear Equation Solver -- V0 Apr 2016";
+    static final String MSG = "Linear Equation Solver -- V1.0 May 2016";
     static final int 
         RESOLUTION = Toolkit.getDefaultToolkit().getScreenResolution();
     static final float 
@@ -18,6 +19,7 @@ public class Solver implements ListSelectionListener, Runnable {
     
     final Matrix mat;
     final JTable tab;
+    final Ear ear = new Ear();
     final JFrame frm;
     JLabel lab, msg, res;
     
@@ -42,7 +44,8 @@ public class Solver implements ListSelectionListener, Runnable {
         int w = mat.getColumnCount() * W;
         int h = mat.getRowCount() * H + (d.height+3);
         scr.setPreferredSize(new Dimension(w, h));
-        tab.getSelectionModel().addListSelectionListener(this);
+        //tab.getSelectionModel().addListSelectionListener(ear);
+        tab.addMouseListener(ear);
         pan.add(scr, "Center");
         
         lab = new JLabel(MSG);
@@ -78,14 +81,11 @@ public class Solver implements ListSelectionListener, Runnable {
         bot.add(res);
         bot.add(Box.createHorizontalStrut(H));
         
-        JButton b = new JButton("New");
+        JButton b = new JButton("Paste");
         b.setFont(NORMAL);
+        b.addActionListener(ear);
         bot.add(b);
         return bot;
-    }
-    public void valueChanged(ListSelectionEvent e) {
-        if (e.getValueIsAdjusting()) return;
-        //System.out.println("row "+tab.getSelectedRow());
     }
     public void run() {
         int k = 0; boolean done = false;
@@ -99,7 +99,7 @@ public class Solver implements ListSelectionListener, Runnable {
             } catch (InterruptedException e) {
             }
         }
-        res.setText("Determinant = "+mat.det);
+        res.setText("|A| = "+mat.det);
         if (mat.getRowCount() == mat.getColumnCount()) return;
         //mat.backward(); tab.repaint(); 
     }
@@ -107,6 +107,23 @@ public class Solver implements ListSelectionListener, Runnable {
         System.out.println("Begin Solver");
         new Thread(this).start(); 
     }
+    void report() {
+        System.out.printf("at %s-%s\n", tab.getSelectedRow(), tab.getSelectedColumn());
+    }
+
+   class Ear extends MouseAdapter implements ActionListener { //ListSelectionListener
+     public void valueChanged(ListSelectionEvent e) {
+        if (e.getValueIsAdjusting()) return; report();
+     }
+     public void mouseClicked(MouseEvent e) {
+        if (e.getClickCount() > 1) System.out.println("double click"); 
+        else report();
+     }
+     public void actionPerformed(ActionEvent e) {
+        JButton b = (JButton)e.getSource();
+        System.out.println(b.getText());
+     }
+   }
 
     public static float scaled(float k) { return k*RES_RATIO; }
     public static int scaled(int k) { return Math.round(k*RES_RATIO); }
@@ -114,7 +131,23 @@ public class Solver implements ListSelectionListener, Runnable {
         Font f =  new Font(name, style, 1); //unit font
         return f.deriveFont(scaled(size));
     }
+    public static Matrix pasteMatrix() {
+        String s = pasteString();
+        if (s == null) return new Matrix();
+        Matrix m = new Matrix(s.split("\\n"));
+        System.out.println(m);
+        return m;
+    }
+    public static String pasteString() {
+        try {
+            return Toolkit.getDefaultToolkit().getSystemClipboard()
+            .getData(java.awt.datatransfer.DataFlavor.stringFlavor).toString();
+        //UnsupportedFlavorException  IOException
+        } catch(Exception e) { 
+            return null;  //throw new RuntimeException(e);
+        }
+    }
     public static void main(String[] args) {
-        new Solver(new Matrix()).solve(); 
+        new Solver(pasteMatrix()).solve(); 
     }
 }
