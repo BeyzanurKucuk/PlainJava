@@ -1,3 +1,5 @@
+import number.Number;
+import number.Factory;
 import java.awt.*;
 import java.awt.event.*;
 import javax.swing.*;
@@ -99,16 +101,35 @@ public class Solver implements Runnable {
             } catch (InterruptedException e) {
             }
         }
-        res.setText("|A| = "+mat.det);
         if (mat.getRowCount() == mat.getColumnCount()) return;
-        //mat.backward(); tab.repaint(); 
+        mat.backward(); display();
     }
     public void solve() {
         System.out.println("Begin Solver");
         new Thread(this).start(); 
     }
+    public void exchange(int i, int k) {
+        System.out.printf("exchange %s \n", k);
+        mat.exchange(i, k); display();
+    }
+    public void multiply(int i, int n) { multiply(i, n, 1);}
+    public void multiply(int i, int num, int den) {
+        Number c = Factory.newRational(den, num);  // 1/p
+        System.out.printf("divide by %s \n", c);
+        mat.divide(i, c); display();
+    }
+    public void addRow(int i, int k) { addRow(i, 1, k); }
+    public void addRow(int i, int n, int k) {
+        Number c = Factory.newWhole(n);
+        System.out.printf("add %s x row %s \n", c, k);
+        mat.row[i].addRow(c, mat.row[k]); display();
+    }
+    void display() {
+        res.setText("|A| = "+mat.det); tab.repaint(); 
+    }
     void report() {
-        System.out.printf("at %s-%s\n", tab.getSelectedRow(), tab.getSelectedColumn());
+        int i = tab.getSelectedRow(); int j = tab.getSelectedColumn();
+        System.out.printf("row:%s, col:%s\n", i, j);
     }
 
    class Ear extends MouseAdapter implements ActionListener { //ListSelectionListener
