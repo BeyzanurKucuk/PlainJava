@@ -3,15 +3,13 @@ import number.Whole;
 import number.Factory;
 import javax.swing.table.TableModel;
 import javax.swing.event.TableModelListener;
+import java.awt.Toolkit;
+import java.awt.datatransfer.Clipboard;
+import java.awt.datatransfer.DataFlavor;
 
 class Row {
    final int N;
    final Number[] data;
-   public Row(int[] d) { 
-      N = d.length; data = new Number[N]; 
-      for (int j=0; j<N; j++) 
-          data[j] = new Whole(d[j]);
-   }
    public Row(Number[] d) { 
       N = d.length; data = new Number[N]; 
       for (int j=0; j<N; j++) 
@@ -42,17 +40,10 @@ class Matrix implements TableModel {
    final Row[] row;
    final boolean notTooManyVars;
    Number det = new Whole(1);
-   public Matrix() { this(B); }
-   public Matrix(int[][] a) {
-      M = a.length; row = new Row[M];
-      for (byte i=0; i<M; i++) row[i] = new Row(a[i]);
-      notTooManyVars = row[0].N < NAME.length;
-      System.out.println(this);
-   }
-   public Matrix(String[] a) {
-      M = a.length; row = new Row[M];
-      for (byte i=0; i<M; i++) row[i] = new Row(Factory.parseRow(a[i]));
-      notTooManyVars = row[0].N < NAME.length;
+   public Matrix() { this(toRows(B)); }
+   public Matrix(Row[] ra) {
+      M = ra.length; row = ra;
+      notTooManyVars = ra[0].N < NAME.length;
       System.out.println(this);
    }
    public void printData() {
@@ -86,10 +77,10 @@ class Matrix implements TableModel {
       System.out.printf("add %s x row %s to row %s \n", c, k, i);
    }
    boolean forward(int k) { //returns true if work is done
-       //if (k == 0) det = new Whole(1); 
-       int j = pickRow(k);
-       if (abs_val(j, k) < 1E-10) return true;
-       exchange(j, k); 
+       if (abs_val(k, k) < 1E-10) {
+           int j = pickRow(k); exchange(j, k); 
+       }
+       if (abs_val(k, k) < 1E-10) return true; //cannot continue
        Number p = row[k].data[k];
        divide(k, p);  //multiply(1/p);
        for (int i=k+1; i<M; i++) 
@@ -141,6 +132,41 @@ class Matrix implements TableModel {
    static Number minus(Number n) {
       return n.mult(MINUS);
    }
+   /*public static Number[][] toNumbers(int[][] a) { 
+      Number[][] aa = new Number[a.length][]; 
+      for (int j=0; j<a.length; j++) 
+          aa[j] = toNumbers(a[j]);
+      return aa;
+   }*/
+   public static Row[] toRows(int[][] aa) {
+      Row[] ra = new Row[aa.length];
+      for (int i=0; i<aa.length; i++) 
+          ra[i] = new Row(toNumbers(aa[i]));
+      return ra;
+   }
+   public static Number[] toNumbers(int[] d) { 
+      Number[] a = new Number[d.length]; 
+      for (int j=0; j<d.length; j++) 
+          a[j] = new Whole(d[j]);
+      return a;
+   }
+   public static Row[] toRows(String[] sa) {
+      Row[] ra = new Row[sa.length];
+      for (int i=0; i<sa.length; i++) 
+          ra[i] = new Row(Factory.parseRow(sa[i]));
+      return ra;
+   }
+    public static Matrix fromCB() {
+        final Clipboard CB = Toolkit.getDefaultToolkit().getSystemClipboard();
+        final DataFlavor STR = DataFlavor.stringFlavor;
+        try {
+            String s = (String)CB.getData(STR);
+            return new Matrix(Matrix.toRows(s.split("\\n")));
+        //UnsupportedFlavorException  IOException
+        } catch(Exception e) { 
+            return new Matrix();  //throw new RuntimeException(e);
+        }
+    }
    public static void main(String[] args) {
       new Matrix().solve();
    }

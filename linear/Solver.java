@@ -6,8 +6,6 @@ import javax.swing.*;
 import javax.swing.event.*;
 import javax.swing.table.JTableHeader;
 import javax.swing.border.EmptyBorder;
-import java.awt.datatransfer.Clipboard;
-import java.awt.datatransfer.DataFlavor;
 
 public class Solver implements Runnable {
 
@@ -15,14 +13,14 @@ public class Solver implements Runnable {
     
     static final String 
         MSG  = "Linear Equation Solver -- V1.0 May 2016",
-        HELP = "X: exchange  M: multiply  A: add row",
-        EXCH = "exchange R",
-        MULT = "multiply R",
-        ADDR = "add to R";
-    static final Clipboard CB = Toolkit.getDefaultToolkit().getSystemClipboard();
-    static final DataFlavor STR = DataFlavor.stringFlavor;
+        TXT1 = "e: exchange  m: multiply  a: add row",
+        EXCH = "exchange Row ",
+        MULT = "multiply Row ",
+        ADDR = "add to Row ",
+        TXT2 = "x Row";
+    static final Toolkit TK = Toolkit.getDefaultToolkit();
     static final int 
-        RESOLUTION = Toolkit.getDefaultToolkit().getScreenResolution();
+        RESOLUTION = TK.getScreenResolution();
     static final float 
         RES_RATIO = RESOLUTION/96f;  //default resolution is 96
     static final int H = scaled(30), W = scaled(80), GAP = scaled(8);
@@ -36,15 +34,15 @@ public class Solver implements Runnable {
     final JFrame frm = new JFrame("Solver");
     final JLabel msg = new JLabel(MSG);
     final JButton but = new JButton("New");
-    final JLabel lab1 = new JLabel(HELP);
-    final JLabel lab2 = new JLabel("  x R");
+    final JLabel lab1 = new JLabel(TXT1);
+    final JLabel lab2 = new JLabel(TXT2);
     final JTextField txt1 = new JTextField();
     final JTextField txt2 = new JTextField();
     final JLabel det = new JLabel();
-    Mode mode;
+    Mode mode;  int curRow = -1;
     
     public Solver() { this(W, H); }
-    public Solver(int x, int y) { this(matrixFromCB(), x, y); }
+    public Solver(int x, int y) { this(Matrix.fromCB(), x, y); }
     public Solver(Matrix m, int x, int y) {
         mat = m;
         JPanel pan = new JPanel(new BorderLayout(GAP, GAP));
@@ -147,17 +145,17 @@ public class Solver implements Runnable {
         new Thread(this).start(); 
     }
     public void exchange(int i, int k) {
-        System.out.printf("exchange row %s by row %s \n", i, k);
+        //System.out.printf("exchange row %s by row %s \n", i, k);
         mat.exchange(i, k); display();
     }
     public void multiply(int i, int k) { multiply(i, new Whole(k));}
     public void multiply(int i, Number k) {
-        System.out.printf("multiply row %s by %s \n", i, k);
+        //System.out.printf("multiply row %s by %s \n", i, k);
         mat.divide(i, k.inverse()); display();
     }
     public void addRow(int i, int j) { addRow(i, new Whole(1), j); }
     public void addRow(int i, Number k, int j) {
-        System.out.printf("add to row %s: %s x row %s \n", i, k, j);
+        //System.out.printf("add to row %s: %s x row %s \n", i, k, j);
         mat.row[i].addRow(k, mat.row[j]); display();
     }
     void display() {
@@ -168,39 +166,46 @@ public class Solver implements Runnable {
         System.out.printf("row:%s, col:%s\n", i, j);
     }
     void displayFields(boolean b) {
-        if (b) { txt1.selectAll(); txt2.selectAll(); }
+        if (!b) { tab.requestFocus(); }
+        else { txt1.selectAll(); txt2.selectAll(); txt1.requestFocus(); }
         txt1.setVisible(b); lab2.setVisible(b); txt2.setVisible(b); 
+    }
+    void displayText1() {
+        txt1.selectAll(); txt1.setVisible(true); txt1.requestFocus();
     }
     void setMode(Mode m) {
         if (mode == m) return;
         mode = m; 
-        int i = tab.getSelectedRow();
+        curRow = tab.getSelectedRow();
         if (m == Mode.exch) {
-            lab1.setText(EXCH+i+" by R");
-            txt1.selectAll(); txt1.setVisible(true);
+            lab1.setText(EXCH+curRow+" by Row");
+            displayText1(); 
         } else if (m == Mode.mult) {
-            lab1.setText(MULT+i);
-            txt1.selectAll(); txt1.setVisible(true);
+            lab1.setText(MULT+curRow);
+            displayText1(); 
         } else if (m == Mode.addR) {
-            lab1.setText(ADDR+i+"  "); 
+            lab1.setText(ADDR+curRow+"  "); 
             displayFields(true);
         } else {   //  Mode.none
-            lab1.setText(HELP);
+            lab1.setText(TXT1);
             displayFields(false);
         }
     }
     void doAction() {
-        int i = tab.getSelectedRow();
+        //int i = tab.getSelectedRow();
         if (mode == Mode.exch) {
             Number n = Factory.parseNumber(txt1.getText());
-            exchange(i, (int)n.value()); 
+            if (n == null || n.value() >= mat.M) { TK.beep(); return; }
+            exchange(curRow, (int)n.value()); 
         } else if (mode == Mode.mult) {
             Number k = Factory.parseNumber(txt1.getText());
-            multiply(i, k); 
+            if (k == null) { TK.beep(); return; }
+            multiply(curRow, k); 
         } else if (mode == Mode.addR) {
             Number k = Factory.parseNumber(txt1.getText());
             Number n = Factory.parseNumber(txt2.getText());
-            addRow(i, k, (int)n.value());
+            if (k == null | n == null || n.value() >= mat.M) { TK.beep(); return; }
+            addRow(curRow, k, (int)n.value());
         }
         setMode(Mode.none);
     }
@@ -213,9 +218,9 @@ public class Solver implements Runnable {
         }
         public void keyTyped(KeyEvent e) { 
             char c = e.getKeyChar();
-            System.out.println("keyTyped "+c);
+            //System.out.println("keyTyped "+c);
             if (c == KeyEvent.VK_ESCAPE) setMode(Mode.none);
-            else if (c == 'x' || c == ',') setMode(Mode.exch); 
+            else if (c == 'e' || c == 'x') setMode(Mode.exch); 
             else if (c == 'm' || c == '*') setMode(Mode.mult); 
             else if (c == 'a' || c == '+') setMode(Mode.addR); 
             else if (c == 'n') but.doClick();
@@ -223,8 +228,15 @@ public class Solver implements Runnable {
         public void keyPressed(KeyEvent e) { }
         public void keyReleased(KeyEvent e) { }
         public void mouseClicked(MouseEvent e) {
-            if (e.getClickCount() > 1) System.out.println("double click"); 
-            else report();
+            int i = tab.getSelectedRow();
+            if (e.getClickCount() > 1) {
+                //System.out.println("double click"); 
+                mat.forward(i); display();
+            } else if (mode == Mode.exch) {
+                txt1.setText(""+i); doAction();
+            } else if (mode == Mode.addR) {
+                txt2.setText(""+i); doAction();
+            } else TK.beep();
         }
         public void actionPerformed(ActionEvent e) {
             Object s = e.getSource();
@@ -239,15 +251,6 @@ public class Solver implements Runnable {
     public static Font scaledFont(String name, int style, float size) {
         Font f =  new Font(name, style, 1); //unit font
         return f.deriveFont(scaled(size));
-    }
-    public static Matrix matrixFromCB() {
-        try {
-            String s = (String)CB.getData(STR);
-            return new Matrix(s.split("\\n"));
-        //UnsupportedFlavorException  IOException
-        } catch(Exception e) { 
-            return new Matrix();  //throw new RuntimeException(e);
-        }
     }
     public static void main(String[] args) {
         new Solver().solve(); 
