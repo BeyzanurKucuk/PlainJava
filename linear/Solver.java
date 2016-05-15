@@ -13,7 +13,7 @@ public class Solver implements Runnable {
     
     static final String 
         MSG  = "Linear Equation Solver -- V1.0 May 2016",
-        TXT1 = "e: exchange  m: multiply  a: add row",
+        TXT1 = "e: exchange  m: multiply  a: add row  s: solve",
         EXCH = "exchange Row ",
         MULT = "multiply Row ",
         ADDR = "add to Row ",
@@ -224,9 +224,9 @@ public class Solver implements Runnable {
             else if (c == 'm' || c == '*') setMode(Mode.mult); 
             else if (c == 'a' || c == '+') setMode(Mode.addR); 
             else if (c == 'n') but.doClick();
-            else if (c == 'b') {
-                mat.backward(); display();
-            }
+            else if (c == 'b' || c == 's') {
+                mat.solve(false); display();
+            } 
         }
         public void keyPressed(KeyEvent e) { }
         public void keyReleased(KeyEvent e) { }

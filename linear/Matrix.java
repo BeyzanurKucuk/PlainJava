@@ -74,7 +74,7 @@ class Matrix implements TableModel {
    }
    public void addRow(int i, Number c, int k) {
       row[i].addRow(minus(row[i].data[k]), row[k]);  //-val(i, k)
-      System.out.printf("add %s x row %s to row %s \n", c, k, i);
+      System.out.printf("add to row %s  %s x row %s\n", i, c, k);
    }
    boolean forward(int k) { //returns true if work is done
        if (abs_val(k, k) < 1E-10) {
@@ -92,16 +92,17 @@ class Matrix implements TableModel {
            for (int i=0; i<k; i++) 
                row[i].addRow(minus(row[i].data[k]), row[k]);
    }
-   public void solve() {
-       printData(); int k = 0; 
+   public void solve(boolean print) {
+       int k = 0; 
+       if (print) printData(); 
        boolean done = false;
        while (!done) {
            done = forward(k);
-           k++; printData();
+           k++; if (print) printData();
        }
        System.out.printf("det = %s \n", det);
        if (M == getColumnCount()) return;
-       backward(); printData();
+       backward(); if (print) printData();
    }
    public Class<?> getColumnClass(int j) { return Number.class; }
    public int getRowCount() { return M; }
@@ -132,12 +133,6 @@ class Matrix implements TableModel {
    static Number minus(Number n) {
       return n.mult(MINUS);
    }
-   /*public static Number[][] toNumbers(int[][] a) { 
-      Number[][] aa = new Number[a.length][]; 
-      for (int j=0; j<a.length; j++) 
-          aa[j] = toNumbers(a[j]);
-      return aa;
-   }*/
    public static Row[] toRows(int[][] aa) {
       Row[] ra = new Row[aa.length];
       for (int i=0; i<aa.length; i++) 
@@ -168,6 +163,6 @@ class Matrix implements TableModel {
         }
     }
    public static void main(String[] args) {
-      new Matrix().solve();
+      new Matrix().solve(true);
    }
 }
