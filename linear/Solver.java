@@ -166,9 +166,9 @@ public class Solver implements Runnable {
         System.out.printf("row:%s, col:%s\n", i, j);
     }
     void displayFields(boolean b) {
+        txt1.setVisible(b); lab2.setVisible(b); txt2.setVisible(b); 
         if (!b) { tab.requestFocus(); }
         else { txt1.selectAll(); txt2.selectAll(); txt1.requestFocus(); }
-        txt1.setVisible(b); lab2.setVisible(b); txt2.setVisible(b); 
     }
     void displayText1() {
         txt1.selectAll(); txt1.setVisible(true); txt1.requestFocus();
@@ -224,6 +224,9 @@ public class Solver implements Runnable {
             else if (c == 'm' || c == '*') setMode(Mode.mult); 
             else if (c == 'a' || c == '+') setMode(Mode.addR); 
             else if (c == 'n') but.doClick();
+            else if (c == 'b') {
+                mat.backward(); display();
+            }
         }
         public void keyPressed(KeyEvent e) { }
         public void keyReleased(KeyEvent e) { }
@@ -236,7 +239,7 @@ public class Solver implements Runnable {
                 txt1.setText(""+i); doAction();
             } else if (mode == Mode.addR) {
                 txt2.setText(""+i); doAction();
-            } else TK.beep();
+            } else if (mode == Mode.mult) TK.beep();
         }
         public void actionPerformed(ActionEvent e) {
             Object s = e.getSource();
